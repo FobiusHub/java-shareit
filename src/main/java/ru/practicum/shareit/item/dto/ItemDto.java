@@ -15,7 +15,6 @@ public class ItemDto {
     private String description;
     @NotNull(message = "Статус должен быть указан")
     private Boolean available;
-    @NotNull(message = "Владелец должен быть указан")
-    private Long owner;
+    private long owner;
     private Long request;
 }
