@@ -13,7 +13,7 @@ public class ItemDto {
     private String name;
     @NotBlank(message = "Описание должно быть заполнено")
     private String description;
-    @NotNull
+    @NotNull(message = "Статус должен быть указан")
     private Boolean available;
     @NotNull(message = "Владелец должен быть указан")
     private long owner;
