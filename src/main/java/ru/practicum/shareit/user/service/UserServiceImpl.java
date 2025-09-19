@@ -17,7 +17,8 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDto create(User user) {
+    public UserDto create(UserDto userDto) {
+        User user = UserMapper.toUser(userDto);
         checkEmailExist(user);
         return UserMapper.toUserDto(userRepository.add(user));
     }

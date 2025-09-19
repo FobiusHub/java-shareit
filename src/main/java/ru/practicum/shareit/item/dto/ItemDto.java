@@ -1,12 +1,10 @@
 package ru.practicum.shareit.item.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-/**
- * TODO Sprint add-controllers.
- */
 @Data
 @AllArgsConstructor
 public class ItemDto {
@@ -15,7 +13,9 @@ public class ItemDto {
     private String name;
     @NotBlank(message = "Описание должно быть заполнено")
     private String description;
+    @NotNull
     private Boolean available;
+    @NotNull(message = "Владелец должен быть указан")
     private long owner;
     private Long request;
 }
