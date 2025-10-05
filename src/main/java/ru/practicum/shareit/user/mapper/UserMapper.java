@@ -7,18 +7,18 @@ import ru.practicum.shareit.user.model.User;
 @UtilityClass
 public class UserMapper {
     public UserDto toUserDto(User user) {
-        return new UserDto(
-                user.getId(),
-                user.getName(),
-                user.getEmail()
-        );
+        UserDto userDto = new UserDto();
+        userDto.setId(user.getId());
+        userDto.setName(user.getName());
+        userDto.setEmail(user.getEmail());
+        return userDto;
     }
 
     public User toUser(UserDto dto) {
-        return new User(
-                dto.getId(),
-                dto.getName(),
-                dto.getEmail()
-        );
+        User user = new User();
+        user.setId(dto.getId());
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
+        return user;
     }
 }
