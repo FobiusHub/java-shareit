@@ -29,23 +29,22 @@ public class UserServiceImpl implements UserService {
 
     @Transactional(readOnly = true)
     @Override
-    public UserDto get(long id) {
-        checkUserExist(id);
-        //Проверка наличия записи в БД происходит выше, потому в проверке Optional на Present необходимости нет
-        return UserMapper.toUserDto(userRepository.findById(id).get());
+    public UserDto get(long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь " + userId + " не найден"));
+
+        return UserMapper.toUserDto(user);
     }
 
     @Override
-    public UserDto update(UserUpdateDto userUpdateDto, long id) {
-        checkUserExist(id);
-
+    public UserDto update(UserUpdateDto userUpdateDto, long userId) {
         String newEmail = userUpdateDto.getEmail();
         if (newEmail != null) {
             validateEmailUnique(newEmail);
         }
 
-        //Проверка наличия записи в БД происходит выше, потому в проверке Optional на Present необходимости нет
-        User user = userRepository.findById(id).get();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь " + userId + " не найден"));
 
         user.setEmail(newEmail);
 
@@ -58,9 +57,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void delete(long id) {
-        checkUserExist(id);
-        userRepository.deleteById(id);
+    public void delete(long userId) {
+        checkUserExist(userId);
+        userRepository.deleteById(userId);
     }
 
     @Override
