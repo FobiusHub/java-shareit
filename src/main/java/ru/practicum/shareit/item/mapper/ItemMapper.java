@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.mapper;
 
 import lombok.experimental.UtilityClass;
+import ru.practicum.shareit.booking.dto.ShortBookingDto;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemExtendedDto;
@@ -8,7 +9,6 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @UtilityClass
@@ -24,8 +24,8 @@ public class ItemMapper {
     }
 
     public ItemExtendedDto toItemExtendedDto(Item item,
-                                             LocalDateTime lastBooking,
-                                             LocalDateTime nextBooking,
+                                             ShortBookingDto lastBooking,
+                                             ShortBookingDto nextBooking,
                                              List<CommentDto> comments) {
         ItemExtendedDto itemExtendedDto = new ItemExtendedDto();
         itemExtendedDto.setId(item.getId());

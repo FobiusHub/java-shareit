@@ -4,7 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.dto.ShortBookingDto;
+import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.common.exceptions.InternalServerException;
 import ru.practicum.shareit.common.exceptions.NotFoundException;
@@ -26,7 +27,6 @@ import ru.practicum.shareit.user.service.UserService;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -41,9 +41,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Transactional
     public ItemDto create(long userId, ItemDto itemDto) {
-        userService.checkUserExist(userId);
-        //Проверка наличия записи в БД происходит выше, потому в проверке Optional на Present необходимости нет
-        User user = userRepository.findById(userId).get();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь " + userId + " не найден"));
+        ;
 
         //в этом спринте Request не реализуем, потому пока передаю Null
         Item item = ItemMapper.toItem(itemDto, user, null);
@@ -55,9 +55,9 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto update(long userId, ItemUpdateDto itemUpdateDto, long itemId) {
         userService.checkUserExist(userId);
-        checkItemExists(itemId);
-        //Проверка наличия записи в БД происходит выше, потому в проверке Optional на Present необходимости нет
-        Item item = itemRepository.findById(itemId).get();
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь " + itemId + " не найдена"));
 
         checkItemOwnership(userId, item);
 
@@ -82,22 +82,22 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemExtendedDto get(long itemId) {
-        checkItemExists(itemId);
-        //Проверка наличия записи в БД происходит выше, потому в проверке Optional на Present необходимости нет
-        Item item = itemRepository.findById(itemId).get();
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь " + itemId + " не найдена"));
 
         LocalDateTime now = LocalDateTime.now();
 
-        Optional<Booking> lastBooking = bookingRepository.findLastBooking(itemId, now);
-        Optional<Booking> nextBooking = bookingRepository.findNextBooking(itemId, now);
-
-        LocalDateTime lastBookingDate = lastBooking.isPresent() ? lastBooking.get().getEnd() : null;
-        LocalDateTime nextBookingDate = nextBooking.isPresent() ? nextBooking.get().getStart() : null;
+        ShortBookingDto lastBookingShort = bookingRepository.findLastBooking(itemId, now)
+                .map(BookingMapper::toShortBookingDto)
+                .orElse(null);
+        ShortBookingDto nextBookingShort = bookingRepository.findNextBooking(itemId, now)
+                .map(BookingMapper::toShortBookingDto)
+                .orElse(null);
 
         List<CommentDto> comments = commentRepository.findAllByItemId(itemId).stream()
                 .map(CommentMapper::toCommentDto).toList();
 
-        return ItemMapper.toItemExtendedDto(item, lastBookingDate, nextBookingDate, comments);
+        return ItemMapper.toItemExtendedDto(item, lastBookingShort, nextBookingShort, comments);
     }
 
     @Override
@@ -108,15 +108,17 @@ public class ItemServiceImpl implements ItemService {
         return itemRepository.findAllByOwnerId(userId).stream()
                 .map(item -> {
                     long itemId = item.getId();
-                    Optional<Booking> lastBooking = bookingRepository.findLastBooking(itemId, now);
-                    Optional<Booking> nextBooking = bookingRepository.findNextBooking(itemId, now);
 
-                    LocalDateTime lastBookingDate = lastBooking.isPresent() ? lastBooking.get().getEnd() : null;
-                    LocalDateTime nextBookingDate = nextBooking.isPresent() ? nextBooking.get().getStart() : null;
+                    ShortBookingDto lastBookingShort = bookingRepository.findLastBooking(itemId, now)
+                            .map(BookingMapper::toShortBookingDto)
+                            .orElse(null);
+                    ShortBookingDto nextBookingShort = bookingRepository.findNextBooking(itemId, now)
+                            .map(BookingMapper::toShortBookingDto)
+                            .orElse(null);
 
                     List<CommentDto> comments = commentRepository.findAllByItemId(itemId).stream()
                             .map(CommentMapper::toCommentDto).toList();
-                    return ItemMapper.toItemExtendedDto(item, lastBookingDate, nextBookingDate, comments);
+                    return ItemMapper.toItemExtendedDto(item, lastBookingShort, nextBookingShort, comments);
                 })
                 .toList();
     }
@@ -134,18 +136,16 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public CommentDto comment(long authorId, CommentDto commentDto, long itemId) {
-        userService.checkUserExist(authorId);
-        checkItemExists(itemId);
-
         if (!bookingRepository.existsFinishedBookingByBookerIdAndItemId(authorId, itemId, LocalDateTime.now())) {
             log.warn("Пользователь {} не арендовал вещь {} или аренда еще на завершилась", authorId, itemId);
             throw new InternalServerException("Пользователь " + authorId +
                     " не арендовал вещь " + itemId + " или аренда еще на завершилась");
         }
 
-        //Проверка наличия записи в БД происходит выше, потому в проверке Optional на Present необходимости нет
-        User author = userRepository.findById(authorId).get();
-        Item item = itemRepository.findById(itemId).get();
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new NotFoundException("Пользователь " + authorId + " не найден"));
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь " + itemId + " не найдена"));
 
         Comment comment = CommentMapper.toComment(commentDto, item, author);
         comment.setCreated(LocalDateTime.now());

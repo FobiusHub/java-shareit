@@ -10,6 +10,7 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.ResponseBookingDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingState;
 import ru.practicum.shareit.booking.model.QBooking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -40,23 +41,20 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     @Override
     public ResponseBookingDto create(long userId, BookingDto bookingDto) {
-        userService.checkUserExist(userId);
-
-        long itemId = bookingDto.getItemId();
-        itemService.checkItemExists(itemId);
-
         checkBookingDates(bookingDto);
 
-        //Проверка наличия записи в БД происходит выше, потому в проверке Optional на Present необходимости нет
-        Item item = itemRepository.findById(itemId).get();
+        long itemId = bookingDto.getItemId();
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь " + itemId + " не найдена"));
 
         if (!item.isAvailable()) {
             log.warn("Вещь не доступна для бронирования");
             throw new InternalServerException("Вещь " + itemId + " не доступна для бронирования");
         }
 
-        //Проверка наличия записи в БД происходит выше, потому в проверке Optional на Present необходимости нет
-        User user = userRepository.findById(userId).get();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь " + userId + " не найден"));
 
         bookingDto.setStatus(Status.WAITING.name());
         Booking booking = BookingMapper.toBooking(bookingDto, item, user);
@@ -70,16 +68,14 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     @Override
     public ResponseBookingDto update(long userId, long bookingId, boolean approved) {
-        checkBookingExist(bookingId);
-        //Проверка наличия записи в БД происходит выше, потому в проверке Optional на Present необходимости нет
-        Booking booking = bookingRepository.findById(bookingId).get();
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NotFoundException("Бронирование " + bookingId + " не найдено"));
 
         long itemId = booking.getItem().getId();
-        itemService.checkItemExists(itemId);
 
         if (approved) {
-            //Проверка наличия записи в БД происходит выше, потому в проверке Optional на Present необходимости нет
-            Item item = itemRepository.findById(itemId).get();
+            Item item = itemRepository.findById(itemId)
+                    .orElseThrow(() -> new NotFoundException("Вещь " + itemId + " не найдена"));
             itemService.checkItemOwnership(userId, item);
             booking.setStatus(Status.APPROVED);
             item.setAvailable(false);
@@ -98,10 +94,9 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public ResponseBookingDto get(long userId, long bookingId) {
         userService.checkUserExist(userId);
-        checkBookingExist(bookingId);
 
-        //Проверка наличия записи в БД происходит выше, потому в проверке Optional на Present необходимости нет
-        Booking booking = bookingRepository.findById(bookingId).get();
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NotFoundException("Бронирование " + bookingId + " не найдено"));
 
         //Может быть выполнено либо автором бронирования, либо владельцем вещи, к которой относится бронирование
         Item item = booking.getItem();
@@ -138,21 +133,25 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private List<ResponseBookingDto> getBookings(long userId, String state, BooleanExpression predicate) {
+        BookingState bookingState;
+        try {
+            bookingState = BookingState.valueOf(state.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InternalServerException("Ошибка при запросе бронирований пользователя: " + state +
+                    " - недопустимый параметр.");
+        }
+
         LocalDateTime now = LocalDateTime.now();
-        switch (state) {
-            case "ALL" -> {
+
+        switch (bookingState) {
+            case ALL -> {
             }
-            case "CURRENT" -> predicate = predicate.and(QBooking.booking.start.after(now))
+            case CURRENT -> predicate = predicate.and(QBooking.booking.start.after(now))
                     .and(QBooking.booking.end.after(now));
-            case "PAST" -> predicate = predicate.and(QBooking.booking.end.before(now));
-            case "FUTURE" -> predicate = predicate.and(QBooking.booking.start.before(now));
-            case "WAITING" -> predicate = predicate.and(QBooking.booking.status.eq(Status.WAITING));
-            case "REJECTED" -> predicate = predicate.and(QBooking.booking.status.eq(Status.REJECTED));
-            default -> {
-                log.warn("Ошибка при запросе бронирований пользователя: {} - недопустимый параметр.", state);
-                throw new InternalServerException("Ошибка при запросе бронирований пользователя: " + state +
-                        " - недопустимый параметр.");
-            }
+            case PAST -> predicate = predicate.and(QBooking.booking.end.before(now));
+            case FUTURE -> predicate = predicate.and(QBooking.booking.start.before(now));
+            case WAITING -> predicate = predicate.and(QBooking.booking.status.eq(Status.WAITING));
+            case REJECTED -> predicate = predicate.and(QBooking.booking.status.eq(Status.REJECTED));
         }
 
         ShortUserDto shortUserDto = userRepository.findShortUserDtoById(userId);
@@ -163,13 +162,6 @@ public class BookingServiceImpl implements BookingService {
                 .map(booking -> BookingMapper.toResponseBookingDto(booking,
                         itemRepository.findShortItemDtoById(booking.getItem().getId()),
                         shortUserDto)).toList();
-    }
-
-    private void checkBookingExist(long bookingId) {
-        if (!bookingRepository.existsById(bookingId)) {
-            log.warn("При запросе данных бронирования возникла ошибка: Бронирование не найдено");
-            throw new NotFoundException("Бронирование " + bookingId + " не найдено");
-        }
     }
 
     private void checkBookingDates(BookingDto bookingDto) {
