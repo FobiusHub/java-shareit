@@ -149,7 +149,7 @@ public class BookingServiceImpl implements BookingService {
             case CURRENT -> predicate = predicate.and(QBooking.booking.start.after(now))
                     .and(QBooking.booking.end.after(now));
             case PAST -> predicate = predicate.and(QBooking.booking.end.before(now));
-            case FUTURE -> predicate = predicate.and(QBooking.booking.start.before(now));
+            case FUTURE -> predicate = predicate.and(QBooking.booking.start.after(now));
             case WAITING -> predicate = predicate.and(QBooking.booking.status.eq(Status.WAITING));
             case REJECTED -> predicate = predicate.and(QBooking.booking.status.eq(Status.REJECTED));
         }
