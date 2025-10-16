@@ -3,6 +3,8 @@ package ru.practicum.shareit.user.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Objects;
+
 @Getter
 @Setter
 @Entity
@@ -26,5 +28,10 @@ public class User {
             return false;
         }
         return id == ((User) o).getId() && name.equals(((User) o).getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, email);
     }
 }
