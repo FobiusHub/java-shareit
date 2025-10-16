@@ -1,3 +1,5 @@
+package item;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
