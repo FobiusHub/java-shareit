@@ -11,6 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.practicum.shareit.booking.dto.ShortBookingDto;
+import ru.practicum.shareit.common.controller.ErrorHandler;
+import ru.practicum.shareit.common.exceptions.OwnershipException;
 import ru.practicum.shareit.item.controller.ItemController;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -58,6 +60,7 @@ public class ItemControllerTest {
     void setUp() {
         mvc = MockMvcBuilders
                 .standaloneSetup(controller)
+                .setControllerAdvice(new ErrorHandler())
                 .build();
     }
 
@@ -134,6 +137,23 @@ public class ItemControllerTest {
                         dto.getDescription().equals(itemUpdateDto.getDescription()) &&
                         dto.getAvailable().equals(itemUpdateDto.getAvailable())), eq(1L)
         );
+    }
+
+    @Test
+    void updateShouldReturnForbidden() throws Exception {
+        initialize();
+
+        when(service.update(anyLong(), any(ItemUpdateDto.class), anyLong()))
+                .thenThrow(new OwnershipException("Ошибка"));
+
+        mvc.perform(patch("/items/1")
+                        .header("X-Sharer-User-Id", 1)
+                        .content(mapper.writeValueAsString(itemUpdateDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error").value("Ошибка"));
     }
 
     /*
