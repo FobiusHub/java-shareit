@@ -16,6 +16,9 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.ResponseBookingDto;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.common.controller.ErrorHandler;
+import ru.practicum.shareit.common.exceptions.InternalServerException;
+import ru.practicum.shareit.common.exceptions.InvalidBookingDatesException;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -48,6 +51,7 @@ public class BookingControllerTest {
     void setUp() {
         mvc = MockMvcBuilders
                 .standaloneSetup(controller)
+                .setControllerAdvice(new ErrorHandler())
                 .build();
     }
 
@@ -74,10 +78,44 @@ public class BookingControllerTest {
                 .andExpect(content().json(mapper.writeValueAsString(responseBookingDto)));
 
         verify(service).create(eq(3L), argThat(dto ->
-                dto.getId() ==  bookingDto.getId() &&
+                dto.getId() == bookingDto.getId() &&
                         dto.getItemId().equals(bookingDto.getItemId()) &&
                         dto.getBookerId().equals(bookingDto.getBookerId()))
         );
+    }
+
+    @Test
+    void createShouldReturnInternalServerError() throws Exception {
+        initialize();
+
+        when(service.create(anyLong(), any(BookingDto.class)))
+                .thenThrow(new InternalServerException("Ошибка"));
+
+        mvc.perform(post("/bookings")
+                        .header("X-Sharer-User-Id", 3L)
+                        .content(mapper.writeValueAsString(bookingDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").value("Ошибка"));
+    }
+
+    @Test
+    void createShouldReturnInvalidBookingDatesException() throws Exception {
+        initialize();
+
+        when(service.create(anyLong(), any(BookingDto.class)))
+                .thenThrow(new InvalidBookingDatesException("Ошибка"));
+
+        mvc.perform(post("/bookings")
+                        .header("X-Sharer-User-Id", 3L)
+                        .content(mapper.writeValueAsString(bookingDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Ошибка"));
     }
 
     /*

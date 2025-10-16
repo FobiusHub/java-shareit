@@ -10,6 +10,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import ru.practicum.shareit.common.controller.ErrorHandler;
+import ru.practicum.shareit.common.exceptions.NotFoundException;
+import ru.practicum.shareit.common.exceptions.ValidationException;
 import ru.practicum.shareit.user.controller.UserController;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
@@ -40,6 +43,7 @@ public class UserControllerTest {
     void setUp() {
         mvc = MockMvcBuilders
                 .standaloneSetup(controller)
+                .setControllerAdvice(new ErrorHandler())
                 .build();
     }
 
@@ -69,6 +73,21 @@ public class UserControllerTest {
         );
     }
 
+    @Test
+    void createShouldReturnCinflict() throws Exception {
+        UserDto user = new UserDto();
+
+        when(service.create(any(UserDto.class))).thenThrow(new ValidationException("Некорректное тело запроса"));
+
+        mvc.perform(post("/users")
+                        .content(mapper.writeValueAsString(user))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("Некорректное тело запроса"));
+    }
+
     /*
     @GetMapping("{id}")
     public UserDto read(@PathVariable long id) {
@@ -87,6 +106,18 @@ public class UserControllerTest {
                 .andExpect(content().json(mapper.writeValueAsString(userDto)));
 
         verify(service).get(1);
+    }
+
+    @Test
+    void readShouldReturnNotFound() throws Exception {
+        initialize();
+
+        when(service.get(anyLong())).thenThrow(new NotFoundException("Пользователь не найден"));
+
+        mvc.perform(get("/users/1")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Пользователь не найден"));
     }
 
     /*
