@@ -291,6 +291,96 @@ public class BookingServiceIntegrationTest {
         assertResponseCorrect(result.getFirst());
     }
 
+    @Test
+    void getUserItemsBookingsShouldShouldReturnCurrentBookings() {
+        initialize();
+
+        User newUser = new User();
+        newUser.setName("newUserName");
+        newUser.setEmail("newUser@email.ru");
+        newUser = userRepository.save(newUser);
+
+        bookingDto.setBookerId(newUser.getId());
+        bookingDto.setEnd(LocalDateTime.of(2026, 01, 01, 10, 10));
+        bookingService.create(newUser.getId(), bookingDto);
+
+        List<ResponseBookingDto> result = bookingService.getUserItemsBookings(user.getId(), "CURRENT");
+        assertThat(result, hasSize(1));
+        assertResponseCorrect(result.getFirst());
+    }
+
+    @Test
+    void getUserItemsBookingsShouldShouldReturnPastBookings() {
+        initialize();
+
+        User newUser = new User();
+        newUser.setName("newUserName");
+        newUser.setEmail("newUser@email.ru");
+        newUser = userRepository.save(newUser);
+
+        bookingDto.setBookerId(newUser.getId());
+        bookingDto.setEnd(LocalDateTime.of(2022, 01, 01, 10, 10));
+        bookingService.create(newUser.getId(), bookingDto);
+
+        List<ResponseBookingDto> result = bookingService.getUserItemsBookings(user.getId(), "PAST");
+        assertThat(result, hasSize(1));
+        assertResponseCorrect(result.getFirst());
+    }
+
+    @Test
+    void getUserItemsBookingsShouldShouldReturnFutureBookings() {
+        initialize();
+
+        User newUser = new User();
+        newUser.setName("newUserName");
+        newUser.setEmail("newUser@email.ru");
+        newUser = userRepository.save(newUser);
+
+        bookingDto.setBookerId(newUser.getId());
+        bookingDto.setStart(LocalDateTime.of(2026, 01, 01, 10, 10));
+        bookingService.create(newUser.getId(), bookingDto);
+
+        List<ResponseBookingDto> result = bookingService.getUserItemsBookings(user.getId(), "FUTURE");
+        assertThat(result, hasSize(1));
+        assertResponseCorrect(result.getFirst());
+    }
+
+    @Test
+    void getUserItemsBookingsShouldShouldReturnWaitingBookings() {
+        initialize();
+
+        User newUser = new User();
+        newUser.setName("newUserName");
+        newUser.setEmail("newUser@email.ru");
+        newUser = userRepository.save(newUser);
+
+        bookingDto.setBookerId(newUser.getId());
+        bookingService.create(newUser.getId(), bookingDto);
+
+        List<ResponseBookingDto> result = bookingService.getUserItemsBookings(user.getId(), "WAITING");
+        assertThat(result, hasSize(1));
+        assertResponseCorrect(result.getFirst());
+    }
+
+    @Test
+    void getUserItemsBookingsShouldShouldReturnRejectedBookings() {
+        initialize();
+
+        User newUser = new User();
+        newUser.setName("newUserName");
+        newUser.setEmail("newUser@email.ru");
+        newUser = userRepository.save(newUser);
+
+        bookingDto.setBookerId(newUser.getId());
+        ResponseBookingDto responseBookingDto = bookingService.create(newUser.getId(), bookingDto);
+
+        bookingService.update(user.getId(), responseBookingDto.getId(), false);
+
+        List<ResponseBookingDto> result = bookingService.getUserItemsBookings(user.getId(), "REJECTED");
+        assertThat(result, hasSize(1));
+        assertResponseCorrect(result.getFirst());
+    }
+
     private void initialize() {
         user = new User();
         user.setName("name");
