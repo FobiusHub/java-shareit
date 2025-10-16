@@ -27,7 +27,7 @@ services:
     image: postgres:16.1
     container_name: postgres
     ports:
-      - "6541:6541"
+      - "6541:5432"
     environment:
       - POSTGRES_PASSWORD=shareit
       - POSTGRES_USER=shareit
