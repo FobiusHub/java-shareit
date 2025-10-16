@@ -1,3 +1,5 @@
+package booking;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,10 +34,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 public class BookingControllerTest {
     @Mock
-    BookingClient client;
+    private BookingClient client;
 
     @InjectMocks
-    BookingController controller;
+    private BookingController controller;
 
     // Маппер настроенный для корректной сериализации LocalDateTime в json
     private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
