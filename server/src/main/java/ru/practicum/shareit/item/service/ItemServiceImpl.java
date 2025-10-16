@@ -150,6 +150,11 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     @Override
     public CommentDto comment(long authorId, CommentDto commentDto, long itemId) {
+        User author = userRepository.findById(authorId)
+                .orElseThrow(() -> new NotFoundException("Пользователь " + authorId + " не найден"));
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь " + itemId + " не найдена"));
+
         if (!bookingRepository.existsFinishedBookingByBookerIdAndItemId(authorId, itemId,
                 ZonedDateTime.now(ZoneId.of("Europe/Samara")).toLocalDateTime()
         )) {
@@ -157,11 +162,6 @@ public class ItemServiceImpl implements ItemService {
             throw new InternalServerException("Пользователь " + authorId +
                     " не арендовал вещь " + itemId + " или аренда еще на завершилась");
         }
-
-        User author = userRepository.findById(authorId)
-                .orElseThrow(() -> new NotFoundException("Пользователь " + authorId + " не найден"));
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException("Вещь " + itemId + " не найдена"));
 
         Comment comment = CommentMapper.toComment(commentDto, item, author);
         comment.setCreated(LocalDateTime.now());

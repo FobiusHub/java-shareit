@@ -1,11 +1,12 @@
 package ru.practicum.shareit.item;
 
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.common.exceptions.InternalServerException;
 import ru.practicum.shareit.common.exceptions.NotFoundException;
@@ -14,7 +15,6 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemExtendedDto;
 import ru.practicum.shareit.item.dto.ItemUpdateDto;
-import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
@@ -28,35 +28,31 @@ import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-public class ItemServiceUnitTest {
-    @Mock
-    private ItemRepository itemRepository;
-    @Mock
-    private UserRepository userRepository;
-    @Mock
-    private ItemRequestRepository itemRequestRepository;
-    @Mock
-    private UserService userService;
-    @Mock
-    private BookingRepository bookingRepository;
-    @Mock
-    private CommentRepository commentRepository;
+@Transactional
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
+public class ItemServiceIntegrationTest {
+    private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
+    private final ItemRequestRepository itemRequestRepository;
+    private final UserService userService;
+    private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
-    @InjectMocks
-    private ItemServiceImpl itemService;
+    private final ItemServiceImpl itemService;
 
     private User user;
     private ItemDto itemDto;
+    private Item item;
+    private User booker1;
+    private User booker2;
     private Booking lastBooking;
     private Booking nextBooking;
     private Comment comment1;
@@ -67,45 +63,25 @@ public class ItemServiceUnitTest {
     */
     @Test
     void createShouldThrowNotFoundExceptionIfUserNotExist() {
-        when(userRepository.findById(-1L)).thenReturn(Optional.empty());
-
         assertThatThrownBy(() -> itemService.create(-1L, itemDto))
                 .isInstanceOf(NotFoundException.class);
-
-        verify(itemRepository, never()).save(any());
     }
 
     @Test
     void createShouldThrowNotFoundExceptionIfItemRequestNotExist() {
         initialize();
         itemDto.setRequestId(-1L);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(itemRequestRepository.findById(-1L)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> itemService.create(user.getId(), itemDto))
                 .isInstanceOf(NotFoundException.class);
-
-        verify(itemRepository, never()).save(any());
     }
 
     @Test
     void createShouldReturnItemDtoWithCorrectFields() {
         initialize();
-        Item item = ItemMapper.toItem(itemDto, user, null);
 
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        item.setId(1);
-        when(itemRepository.save(any(Item.class))).thenReturn(item);
         ItemDto result = itemService.create(user.getId(), itemDto);
 
-        verify(itemRepository, times(1)).save(argThat(saved ->
-                saved.getName().equals(itemDto.getName()) &&
-                        saved.getDescription().equals(itemDto.getDescription()) &&
-                        saved.isAvailable() == itemDto.getAvailable() &&
-                        saved.getOwner().equals(user) &&
-                        saved.getRequest() == null));
-
-        assertThat(result.getId(), equalTo(1L));
         assertThat(result.getName(), equalTo(itemDto.getName()));
         assertThat(result.getDescription(), equalTo(itemDto.getDescription()));
         assertThat(result.getAvailable(), equalTo(itemDto.getAvailable()));
@@ -119,53 +95,49 @@ public class ItemServiceUnitTest {
 
     @Test
     void updateShouldThrowNotFoundExceptionIfItemNotExist() {
-        doNothing().when(userService).checkUserExist(anyLong());
-        when(itemRepository.findById(-1L)).thenReturn(Optional.empty());
+        initialize();
 
-        assertThatThrownBy(() -> itemService.update(1, null, -1L))
+
+        assertThatThrownBy(() -> itemService.update(user.getId(), null, -1L))
                 .isInstanceOf(NotFoundException.class);
-
-        verify(itemRepository, never()).save(any());
     }
 
     @Test
     void updateShouldThrowNotFoundExceptionWhenUserDoesNotOwnItem() {
         initialize();
-        doNothing().when(userService).checkUserExist(anyLong());
-        Item item = new Item();
-        item.setOwner(user);
-        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
 
-        assertThatThrownBy(() -> itemService.update(-1L, null, -1L))
+        User owner = new User();
+        owner.setName("name");
+        owner.setEmail("email@email.ru");
+        userRepository.save(owner);
+
+        item = new Item();
+        item.setName("name");
+        item.setDescription("description");
+        item.setOwner(owner);
+        itemRepository.save(item);
+
+        long itemId = item.getId();
+
+        assertThatThrownBy(() -> itemService.update(user.getId(), new ItemUpdateDto(), itemId))
                 .isInstanceOf(OwnershipException.class);
-
-        verify(itemRepository, never()).save(any());
     }
 
     @Test
     void updateShouldCallSaveWithUpdatedFields() {
         initialize();
-        doNothing().when(userService).checkUserExist(anyLong());
+
         Item item = ItemMapper.toItem(itemDto, user, null);
-        item.setOwner(user);
-        item.setId(1);
-        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        item = itemRepository.save(item);
 
         ItemUpdateDto itemUpdateDto = new ItemUpdateDto();
         itemUpdateDto.setName("newName");
         itemUpdateDto.setDescription("newDescription");
         itemUpdateDto.setAvailable(false);
 
-
-        when(itemRepository.save(any(Item.class))).thenReturn(item);
         ItemDto result = itemService.update(user.getId(), itemUpdateDto, item.getId());
 
-        verify(itemRepository, times(1)).save(argThat(saved ->
-                saved.getName().equals(itemUpdateDto.getName()) &&
-                        saved.getDescription().equals(itemUpdateDto.getDescription()) &&
-                        saved.isAvailable() == itemUpdateDto.getAvailable()));
-
-        assertThat(result.getId(), equalTo(1L));
+        assertThat(result.getId(), equalTo(item.getId()));
         assertThat(result.getName(), equalTo(itemUpdateDto.getName()));
         assertThat(result.getDescription(), equalTo(itemUpdateDto.getDescription()));
         assertThat(result.getAvailable(), equalTo(itemUpdateDto.getAvailable()));
@@ -176,37 +148,23 @@ public class ItemServiceUnitTest {
     /*
     ItemExtendedDto get(long itemId);
     */
-
     @Test
     void getShouldThrowNotFoundExceptionIfItemNotExist() {
-        when(itemRepository.findById(-1L)).thenReturn(Optional.empty());
-
         assertThatThrownBy(() -> itemService.get(-1L))
                 .isInstanceOf(NotFoundException.class);
     }
 
-    //get должен вернуть Dto с bookings и comments
     @Test
     void getShouldReturnDtoWithBookingsAndComments() {
         initialize();
 
-        Item item = new Item();
-        item.setId(1);
-        item.setOwner(user);
-        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
-
         initializeForExtendedDtoMethods();
 
-        when(bookingRepository.findLastBooking(anyLong(), any(LocalDateTime.class)))
-                .thenReturn(Optional.of(lastBooking));
-        when(bookingRepository.findNextBooking(anyLong(), any(LocalDateTime.class)))
-                .thenReturn(Optional.of(nextBooking));
-        when(commentRepository.findAllByItemId(anyLong()))
-                .thenReturn(List.of(comment1, comment2));
+        long itemId = item.getId();
 
-        ItemExtendedDto result = itemService.get(1);
+        ItemExtendedDto result = itemService.get(itemId);
 
-        assertThat(result.getId(), equalTo(1L));
+        assertThat(result.getId(), equalTo(itemId));
         assertThat(result.getName(), equalTo(item.getName()));
         assertThat(result.getDescription(), equalTo(item.getDescription()));
         assertThat(result.getAvailable(), equalTo(item.isAvailable()));
@@ -221,27 +179,14 @@ public class ItemServiceUnitTest {
     */
     @Test
     void findItemsByOwnerIdShouldReturnItemExtendedDtoList() {
-        doNothing().when(userService).checkUserExist(anyLong());
         initialize();
 
-        Item item = new Item();
-        item.setId(1);
-        item.setOwner(user);
-
         initializeForExtendedDtoMethods();
-
-        when(itemRepository.findAllByOwnerId(anyLong())).thenReturn(List.of(item));
-        when(bookingRepository.findLastBooking(anyLong(), any(LocalDateTime.class)))
-                .thenReturn(Optional.of(lastBooking));
-        when(bookingRepository.findNextBooking(anyLong(), any(LocalDateTime.class)))
-                .thenReturn(Optional.of(nextBooking));
-        when(commentRepository.findAllByItemId(anyLong()))
-                .thenReturn(List.of(comment1, comment2));
 
         List<ItemExtendedDto> result = itemService.findItemsByOwnerId(user.getId());
         ItemExtendedDto first = result.getFirst();
 
-        assertThat(first.getId(), equalTo(1L));
+        assertThat(first.getId(), equalTo(item.getId()));
         assertThat(first.getName(), equalTo(item.getName()));
         assertThat(first.getDescription(), equalTo(item.getDescription()));
         assertThat(first.getAvailable(), equalTo(item.isAvailable()));
@@ -265,17 +210,20 @@ public class ItemServiceUnitTest {
         initialize();
 
         Item item1 = new Item();
-        item1.setId(1);
         item1.setOwner(user);
+        item1.setName("name");
+        item1.setDescription("someDescription");
+        item1.setAvailable(true);
+        item1 = itemRepository.save(item1);
+
         Item item2 = new Item();
-        item2.setId(2);
         item2.setOwner(user);
+        item2.setName("name");
+        item2.setDescription("otherDescription");
+        item2.setAvailable(true);
+        item2 = itemRepository.save(item2);
 
-        when(itemRepository.findByText("text")).thenReturn(List.of(item1, item2));
-
-        //корректность работы маппера проверяется в createShouldReturnItemDtoWithCorrectFields
-        //поэтому достаточно проверить, что возвращается корректный список
-        List<ItemDto> result = itemService.findItem("text");
+        List<ItemDto> result = itemService.findItem("description");
 
         assertThat(result.getFirst().getId(), equalTo(item1.getId()));
         assertThat(result.getLast().getId(), equalTo(item2.getId()));
@@ -286,74 +234,55 @@ public class ItemServiceUnitTest {
     */
     @Test
     void commentShouldThrowInternalServerExceptionIfUserDidNotBookItem() {
-        when(bookingRepository.existsFinishedBookingByBookerIdAndItemId(anyLong(),
-                anyLong(),
-                any(LocalDateTime.class)))
-                .thenReturn(false);
+        initialize();
+        initializeForExtendedDtoMethods();
 
-        assertThatThrownBy(() -> itemService.comment(-1L, null, -1L))
+        assertThatThrownBy(() -> itemService.comment(user.getId(), null, item.getId()))
                 .isInstanceOf(InternalServerException.class);
-
-        verify(commentRepository, never()).save(any());
     }
 
     @Test
     void commentShouldThrowNotFoundExceptionIfUserDoesNotExists() {
-        when(bookingRepository.existsFinishedBookingByBookerIdAndItemId(anyLong(),
-                anyLong(),
-                any(LocalDateTime.class)))
-                .thenReturn(true);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
-
         assertThatThrownBy(() -> itemService.comment(-1L, null, -1L))
                 .isInstanceOf(NotFoundException.class);
-
-        verify(commentRepository, never()).save(any());
     }
 
     @Test
     void commentShouldThrowNotFoundExceptionIfItemDoesNotExists() {
         initialize();
-        when(bookingRepository.existsFinishedBookingByBookerIdAndItemId(anyLong(),
-                anyLong(),
-                any(LocalDateTime.class)))
-                .thenReturn(true);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        when(itemRepository.findById(anyLong())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> itemService.comment(-1L, null, -1L))
+        assertThatThrownBy(() -> itemService.comment(user.getId(), null, -1L))
                 .isInstanceOf(NotFoundException.class);
-
-        verify(commentRepository, never()).save(any());
     }
 
     @Test
     void commentShouldReturnCorrectDto() throws InterruptedException {
-        initialize();
-        when(bookingRepository.existsFinishedBookingByBookerIdAndItemId(anyLong(),
-                anyLong(),
-                any(LocalDateTime.class)))
-                .thenReturn(true);
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-        Item item = new Item();
-        when(itemRepository.findById(anyLong())).thenReturn(Optional.of(item));
+        booker1 = new User();
+        booker1.setName("booker1");
+        booker1.setEmail("booker1@email.ru");
+        userRepository.save(booker1);
+
+        item = new Item();
+        item.setName("name");
+        item.setDescription("description");
+        item.setOwner(user);
+        item = itemRepository.save(item);
+
+        Booking booking = new Booking();
+        booking.setItem(item);
+        booking.setBooker(booker1);
+        booking.setStart(LocalDateTime.of(2025, 10, 15, 12, 30));
+        booking.setEnd(LocalDateTime.of(2025, 10, 15, 12, 45));
+        booking.setStatus(Status.APPROVED);
+        bookingRepository.save(booking);
 
         CommentDto commentDto = new CommentDto();
         commentDto.setText("someText");
-        commentDto.setAuthorName(user.getName());
-        commentDto.setId(1);
-        commentDto.setCreated(LocalDateTime.now());
 
-        when(commentRepository.save(any(Comment.class))).thenReturn(CommentMapper.toComment(commentDto, item, user));
-
-        CommentDto result = itemService.comment(user.getId(), commentDto, item.getId());
-
-        verify(commentRepository, times(1)).save(argThat(saved ->
-                saved.getText().equals(commentDto.getText()) &&
-                        saved.getAuthor().getName() == commentDto.getAuthorName()));
+        CommentDto result = itemService.comment(booker1.getId(), commentDto, item.getId());
 
         assertThat(result.getText(), equalTo(commentDto.getText()));
-        assertThat(result.getAuthorName(), equalTo(commentDto.getAuthorName()));
+        assertThat(result.getAuthorName(), equalTo(booker1.getName()));
     }
 
     /*
@@ -361,8 +290,6 @@ public class ItemServiceUnitTest {
     */
     @Test
     void checkItemExistsShouldThrowNotFoExceptionIfItemDoesNotExists() {
-        when(itemRepository.existsById(anyLong())).thenReturn(false);
-
         assertThatThrownBy(() -> itemService.checkItemExists(-1L))
                 .isInstanceOf(NotFoundException.class);
     }
@@ -373,28 +300,71 @@ public class ItemServiceUnitTest {
     @Test
     void checkItemOwnershipShouldThrowOwnershipExceptionIfUserDoesNotOwnItem() {
         initialize();
-        Item item = new Item();
+        item = new Item();
+        item.setName("name");
+        item.setDescription("description");
         item.setOwner(user);
+        item = itemRepository.save(item);
 
-        assertThatThrownBy(() -> itemService.checkItemOwnership(-1L, item))
+        User otherUser = new User();
+        otherUser.setName("booker1");
+        otherUser.setEmail("booker1@email.ru");
+        userRepository.save(otherUser);
+
+        assertThatThrownBy(() -> itemService.checkItemOwnership(otherUser.getId(), item))
                 .isInstanceOf(OwnershipException.class);
     }
 
     private void initializeForExtendedDtoMethods() {
+        booker1 = new User();
+        booker1.setName("booker1");
+        booker1.setEmail("booker1@email.ru");
+        userRepository.save(booker1);
+        booker2 = new User();
+        booker2.setName("booker2");
+        booker2.setEmail("booker2@email.ru");
+        userRepository.save(booker2);
+
+        item = new Item();
+        item.setName("name");
+        item.setDescription("description");
+        item.setOwner(user);
+        item = itemRepository.save(item);
+
         lastBooking = new Booking();
-        lastBooking.setId(1);
-        lastBooking.setBooker(new User());
+        lastBooking.setItem(item);
+        lastBooking.setBooker(booker1);
+        lastBooking.setStart(LocalDateTime.of(2025, 10, 15, 12, 30));
+        lastBooking.setEnd(LocalDateTime.of(2025, 12, 15, 12, 45));
+        lastBooking.setStatus(Status.APPROVED);
+        lastBooking = bookingRepository.save(lastBooking);
+
         nextBooking = new Booking();
-        nextBooking.setId(2);
-        nextBooking.setBooker(new User());
+        nextBooking.setItem(item);
+        nextBooking.setBooker(booker2);
+        nextBooking.setStart(LocalDateTime.of(2026, 2, 2, 12, 30));
+        nextBooking.setEnd(LocalDateTime.of(2026, 2, 2, 12, 45));
+        nextBooking.setStatus(Status.APPROVED);
+        nextBooking = bookingRepository.save(nextBooking);
+
         comment1 = new Comment();
-        comment1.setAuthor(new User());
+        comment1.setAuthor(booker1);
+        comment1.setCreated(LocalDateTime.now());
+        comment1.setText("text1");
+        comment1.setItem(item);
+        comment1 = commentRepository.save(comment1);
+
         comment2 = new Comment();
-        comment2.setAuthor(new User());
+        comment2.setAuthor(booker2);
+        comment2.setCreated(LocalDateTime.now());
+        comment2.setText("text2");
+        comment2.setItem(item);
+        comment2 = commentRepository.save(comment2);
     }
 
     private void initialize() {
         user = makeUser("someName", "some@email.ru");
+        user = userRepository.save(user);
         itemDto = makeItemDto("itemDtoName", "itemDtoDescription");
     }
 
@@ -408,7 +378,6 @@ public class ItemServiceUnitTest {
 
     private User makeUser(String name, String email) {
         User user = new User();
-        user.setId(1);
         user.setName(name);
         user.setEmail(email);
         return user;
