@@ -27,8 +27,6 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -156,8 +154,7 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("Вещь " + itemId + " не найдена"));
 
         if (!bookingRepository.existsFinishedBookingByBookerIdAndItemId(authorId, itemId,
-                ZonedDateTime.now(ZoneId.of("Europe/Samara")).toLocalDateTime()
-        )) {
+                LocalDateTime.now())) {
             log.warn("Пользователь {} не арендовал вещь {} или аренда еще на завершилась", authorId, itemId);
             throw new InternalServerException("Пользователь " + authorId +
                     " не арендовал вещь " + itemId + " или аренда еще на завершилась");
