@@ -1,4 +1,4 @@
-package user;
+package ru.practicum.shareit.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,13 +44,6 @@ public class UserControllerTest {
                 .build();
     }
 
-    /*
-    @PostMapping
-    public ResponseEntity<Object> create(@Valid @RequestBody UserDto userDto) {
-        log.info("Creating user {}, email {}", userDto.getName(), userDto.getEmail());
-        return userClient.create(userDto);
-    }
-    */
     @Test
     void createTest() throws Exception {
         initialize();
@@ -71,13 +64,6 @@ public class UserControllerTest {
         );
     }
 
-    /*
-    @GetMapping("{id}")
-    public ResponseEntity<Object> read(@PathVariable long id) {
-        log.info("Get user id {}", id);
-        return userClient.getUser(id);
-    }
-    */
     @Test
     void readTest() throws Exception {
         initialize();
@@ -92,13 +78,6 @@ public class UserControllerTest {
         verify(client).getUser(1);
     }
 
-    /*
-    @PatchMapping("{id}")
-    public ResponseEntity<Object> update(@Valid @RequestBody UserUpdateDto userUpdateDto, @PathVariable long id) {
-        log.info("Updating user id {}: name {}, email {}", id, userUpdateDto.getName(), userUpdateDto.getEmail());
-        return userClient.update(userUpdateDto, id);
-    }
-    */
     @Test
     void updateTest() throws Exception {
         initialize();
@@ -124,12 +103,6 @@ public class UserControllerTest {
         verify(client).update(userUpdateDto, 1);
     }
 
-    /*
-    @DeleteMapping("{id}")
-    public void delete(@PathVariable long id) {
-        log.info("Delete user id {}", id);
-        userClient.delete(id);
-    }*/
     @Test
     void deleteTest() throws Exception {
         initialize();

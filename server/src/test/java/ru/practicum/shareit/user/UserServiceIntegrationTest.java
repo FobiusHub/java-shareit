@@ -23,9 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class UserServiceIntegrationTest {
     private final UserService userService;
 
-    /*
-    UserDto create(UserDto userDto);
-    */
     @Test
     void createShouldCorrectlySaveUser() {
         UserDto userDto1 = new UserDto();
@@ -56,9 +53,6 @@ public class UserServiceIntegrationTest {
         });
     }
 
-    /*
-    UserDto get(long userId);
-    */
     @Test
     void getShouldThrowNotFoundExceptionIfUserDoesNotExist() {
         assertThrows(NotFoundException.class, () -> {
@@ -66,9 +60,6 @@ public class UserServiceIntegrationTest {
         });
     }
 
-    /*
-    UserDto update(UserUpdateDto userUpdateDto, long userId);
-    */
     @Test
     void updateThrowValidationExceptionIfEmailExists() {
         UserDto userDto1 = new UserDto();
@@ -117,9 +108,6 @@ public class UserServiceIntegrationTest {
         assertThat(updatedDto.getEmail(), equalTo(updateDto.getEmail()));
     }
 
-    /*
-    void delete(long userId);
-    */
     @Test
     void deleteShouldThrowNotFoundExceptionIfUserDoesNotExist() {
         assertThrows(NotFoundException.class, () -> {

@@ -1,4 +1,4 @@
-package item;
+package ru.practicum.shareit.item;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
@@ -63,15 +63,6 @@ public class ItemControllerTest {
                 .build();
     }
 
-    /*
-    @PostMapping
-    public ResponseEntity<Object> create(@RequestHeader("X-Sharer-User-Id") long userId,
-                                         @Valid @RequestBody ItemDto itemDto) {
-        log.info("Create item with name {}, description {} and available {}",
-                itemDto.getName(), itemDto.getDescription(), itemDto.getAvailable());
-        return itemClient.create(userId, itemDto);
-    }
-    */
     @Test
     void createTest() throws Exception {
         initialize();
@@ -105,16 +96,6 @@ public class ItemControllerTest {
         );
     }
 
-    /*
-    @PatchMapping("{itemId}")
-    public ResponseEntity<Object> update(@RequestHeader("X-Sharer-User-Id") long userId,
-                                         @Valid @RequestBody ItemUpdateDto itemUpdateDto,
-                                         @PathVariable long itemId) {
-        log.info("Updating item id {} with name {}, description {} and available {}",
-                itemId, itemUpdateDto.getName(), itemUpdateDto.getDescription(), itemUpdateDto.getAvailable());
-        return itemClient.update(userId, itemUpdateDto, itemId);
-    }
-    */
     @Test
     void updateTest() throws Exception {
         initialize();
@@ -143,13 +124,6 @@ public class ItemControllerTest {
         );
     }
 
-    /*
-    @GetMapping("{itemId}")
-    public ResponseEntity<Object> read(@PathVariable long itemId) {
-        log.info("Get item id {}", itemId);
-        return itemClient.get(itemId);
-    }
-    */
     @Test
     void readTest() throws Exception {
         initialize();
@@ -173,13 +147,6 @@ public class ItemControllerTest {
         verify(client).get(eq(1L));
     }
 
-    /*
-    @GetMapping
-    public ResponseEntity<Object> findItemsByOwnerId(@RequestHeader("X-Sharer-User-Id") long userId) {
-        log.info("Find items by owner id {}", userId);
-        return itemClient.findItemsByOwnerId(userId);
-    }
-    */
     @Test
     void findItemsByOwnerIdTest() throws Exception {
         initialize();
@@ -205,13 +172,6 @@ public class ItemControllerTest {
         verify(client).findItemsByOwnerId(eq(7L));
     }
 
-    /*
-    @GetMapping("/search")
-    public ResponseEntity<Object> findItem(@RequestParam String text) {
-        log.info("Find items by text {}", text);
-        return itemClient.findItem(text);
-    }
-    */
     @Test
     void findItemTest() throws Exception {
         initialize();
@@ -233,15 +193,6 @@ public class ItemControllerTest {
         verify(client).findItem(eq("text"));
     }
 
-    /*
-    @PostMapping("{itemId}/comment")
-    public ResponseEntity<Object> comment(@RequestHeader("X-Sharer-User-Id") long authorId,
-                                          @RequestBody CommentDto commentDto,
-                                          @PathVariable long itemId) {
-        log.info("Comment: {} for item id {} from author id {}", commentDto.getText(), itemId, authorId);
-        return itemClient.comment(authorId, commentDto, itemId);
-    }
-    */
     @Test
     void commentTest() throws Exception {
         initialize();

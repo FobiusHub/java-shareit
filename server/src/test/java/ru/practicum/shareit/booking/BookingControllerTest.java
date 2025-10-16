@@ -55,13 +55,6 @@ public class BookingControllerTest {
                 .build();
     }
 
-    /*
-    @PostMapping
-    public ResponseBookingDto create(@RequestHeader("X-Sharer-User-Id") long userId,
-                                     @Valid @RequestBody BookingDto bookingDto) {
-        return bookingService.create(userId, bookingDto);
-    }
-    */
     @Test
     void createTest() throws Exception {
         initialize();
@@ -118,14 +111,6 @@ public class BookingControllerTest {
                 .andExpect(jsonPath("$.error").value("Ошибка"));
     }
 
-    /*
-    @PatchMapping("{bookingId}")
-    public ResponseBookingDto update(@RequestHeader("X-Sharer-User-Id") long userId,
-                                     @PathVariable long bookingId,
-                                     @RequestParam boolean approved) {
-        return bookingService.update(userId, bookingId, approved);
-    }
-    */
     @Test
     void updateTest() throws Exception {
         initialize();
@@ -144,12 +129,6 @@ public class BookingControllerTest {
         verify(service).update(eq(3L), eq(2L), eq(true));
     }
 
-    /*
-    @GetMapping("{bookingId}")
-    public ResponseBookingDto read(@RequestHeader("X-Sharer-User-Id") long userId, @PathVariable long bookingId) {
-        return bookingService.get(userId, bookingId);
-    }
-    */
     @Test
     void readTest() throws Exception {
         initialize();
@@ -166,13 +145,6 @@ public class BookingControllerTest {
         verify(service).get(eq(3L), eq(2L));
     }
 
-    /*
-    @GetMapping
-    public List<ResponseBookingDto> getUserBookings(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                    @RequestParam(defaultValue = "ALL") String state) {
-        return bookingService.getUserBookings(userId, state);
-    }
-    */
     @Test
     void getUserBookingsTest() throws Exception {
         initialize();
@@ -191,13 +163,6 @@ public class BookingControllerTest {
         verify(service).getUserBookings(eq(3L), eq("ALL"));
     }
 
-    /*
-    @GetMapping("owner")
-    public List<ResponseBookingDto> getUserItemsBookings(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                         @RequestParam(defaultValue = "ALL") String state) {
-        return bookingService.getUserItemsBookings(userId, state);
-    }
-    */
     @Test
     void getUserItemsBookings() throws Exception {
         initialize();

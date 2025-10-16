@@ -30,16 +30,6 @@ public class BookingRepositoryTest {
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
 
-    /*
-    @Query("SELECT COUNT(b) > 0 FROM Booking b " +
-            "WHERE b.status = 'APPROVED'" +
-            "AND b.booker.id = :bookerId " +
-            "AND b.item.id = :itemId " +
-            "AND b.end <= :now")
-    boolean existsFinishedBookingByBookerIdAndItemId(@Param("bookerId") long bookerId,
-                                                     @Param("itemId") long itemId,
-                                                     @Param("now") LocalDateTime now);
-    */
     @Test
     void existsFinishedBookingByBookerIdAndItemIdShouldReturnFalseIfNotExists() {
         boolean result = bookingRepository.existsFinishedBookingByBookerIdAndItemId(1,

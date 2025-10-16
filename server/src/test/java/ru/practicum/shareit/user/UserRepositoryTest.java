@@ -23,9 +23,6 @@ import static org.hamcrest.Matchers.equalTo;
 public class UserRepositoryTest {
     private final UserRepository userRepository;
 
-    /*
-    ShortUserDto findShortUserDtoById(long id);
-    */
     @Test
     void findShortUserDtoByIdShouldReturnCorrectDto() {
         User user = new User();
@@ -42,9 +39,6 @@ public class UserRepositoryTest {
         assertThat(result.getName(), equalTo(user.getName()));
     }
 
-    /*
-    ShortUserDto findShortUserDtoById(long id);
-    */
     @Test
     void findShortUserDtoByIdShouldReturnNullIfUserDoesNotExist() {
         ShortUserDto result = userRepository.findShortUserDtoById(1);

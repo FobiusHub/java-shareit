@@ -49,13 +49,6 @@ public class ItemRequestControllerTest {
                 .build();
     }
 
-    /*
-    @PostMapping
-    public ItemRequestDto create (@RequestHeader("X-Sharer-User-Id") long userId,
-                                  @Valid @RequestBody ItemRequestDto itemRequestDto) {
-        return itemRequestService.create(userId, itemRequestDto);
-    }
-    */
     @Test
     void createTest() throws Exception {
         initialize();
@@ -77,12 +70,6 @@ public class ItemRequestControllerTest {
         );
     }
 
-    /*
-    @GetMapping
-    public List<ItemRequestExtendedDto> getOwnRequests(@RequestHeader("X-Sharer-User-Id") long userId) {
-        return itemRequestService.getOwnRequests(userId);
-    }
-    */
     @Test
     void getOwnRequestsTest() throws Exception {
         extendedDtoInitialize();
@@ -101,12 +88,6 @@ public class ItemRequestControllerTest {
         verify(service).getOwnRequests(eq(7L));
     }
 
-    /*
-    @GetMapping("/all")
-    public List<ItemRequestDto> getAllRequests(@RequestHeader("X-Sharer-User-Id") long userId) {
-        return itemRequestService.getAllRequests(userId);
-    }
-    */
     @Test
     void getAllRequestsTest() throws Exception {
         initialize();
@@ -125,13 +106,6 @@ public class ItemRequestControllerTest {
         verify(service).getAllRequests(eq(7L));
     }
 
-    /*
-    @GetMapping("/{requestId}")
-    public ItemRequestExtendedDto getRequest(@RequestHeader("X-Sharer-User-Id") long userId,
-                                             @PathVariable long requestId) {
-        return itemRequestService.getRequest(userId, requestId);
-    }
-    */
     @Test
     void getRequestTest() throws Exception {
         extendedDtoInitialize();

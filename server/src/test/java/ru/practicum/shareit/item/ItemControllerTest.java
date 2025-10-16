@@ -64,12 +64,6 @@ public class ItemControllerTest {
                 .build();
     }
 
-    /*
-    @PostMapping
-    public ItemDto create(@RequestHeader("X-Sharer-User-Id") long userId, @Valid @RequestBody ItemDto itemDto) {
-        return itemService.create(userId, itemDto);
-    }
-    */
     @Test
     void createTest() throws Exception {
         initialize();
@@ -103,14 +97,6 @@ public class ItemControllerTest {
         );
     }
 
-    /*
-    @PatchMapping("{itemId}")
-    public ItemDto update(@RequestHeader("X-Sharer-User-Id") long userId,
-                          @Valid @RequestBody ItemUpdateDto itemUpdateDto,
-                          @PathVariable long itemId) {
-        return itemService.update(userId, itemUpdateDto, itemId);
-    }
-    */
     @Test
     void updateTest() throws Exception {
         initialize();
@@ -156,12 +142,6 @@ public class ItemControllerTest {
                 .andExpect(jsonPath("$.error").value("Ошибка"));
     }
 
-    /*
-    @GetMapping("{itemId}")
-    public ItemExtendedDto read(@PathVariable long itemId) {
-        return itemService.get(itemId);
-    }
-    */
     @Test
     void readTest() throws Exception {
         initialize();
@@ -185,12 +165,6 @@ public class ItemControllerTest {
         verify(service).get(eq(1L));
     }
 
-    /*
-    @GetMapping
-    public List<ItemExtendedDto> findItemsByOwnerId(@RequestHeader("X-Sharer-User-Id") long userId) {
-        return itemService.findItemsByOwnerId(userId);
-    }
-    */
     @Test
     void findItemsByOwnerIdTest() throws Exception {
         initialize();
@@ -216,12 +190,6 @@ public class ItemControllerTest {
         verify(service).findItemsByOwnerId(eq(7L));
     }
 
-    /*
-    @GetMapping("/search")
-    public List<ItemDto> findItem(@RequestParam String text) {
-        return itemService.findItem(text);
-    }
-    */
     @Test
     void findItemTest() throws Exception {
         initialize();
@@ -243,14 +211,6 @@ public class ItemControllerTest {
         verify(service).findItem(eq("text"));
     }
 
-    /*
-    @PostMapping("{itemId}/comment")
-    public CommentDto comment(@RequestHeader("X-Sharer-User-Id") long authorId,
-                              @RequestBody CommentDto commentDto,
-                              @PathVariable long itemId) {
-        return itemService.comment(authorId, commentDto, itemId);
-    }
-    */
     @Test
     void commentTest() throws Exception {
         initialize();

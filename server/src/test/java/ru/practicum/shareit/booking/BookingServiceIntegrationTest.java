@@ -37,9 +37,6 @@ public class BookingServiceIntegrationTest {
     private User user;
     private Item item;
 
-    /*
-    ResponseBookingDto create(long userId, BookingDto bookingDto);
-    */
     @Test
     void createShouldThrowInvalidBookingDatesException() {
         bookingDto = new BookingDto();
@@ -104,9 +101,6 @@ public class BookingServiceIntegrationTest {
         assertResponseEquals(resultFromDb, result);
     }
 
-    /*
-    ResponseBookingDto update(long userId, long bookingId, boolean approved);
-    */
     @Test
     void updateShouldThrowNotFoundExceptionIfBookingDoesNotExist() {
         assertThrows(NotFoundException.class, () -> {
@@ -161,10 +155,6 @@ public class BookingServiceIntegrationTest {
         assertThat(changedItem.isAvailable(), equalTo(true));
     }
 
-
-    /*
-    ResponseBookingDto get(long userId, long bookingId);
-    */
     @Test
     void getShouldThrowNotFoundExceptionIfUserDoesNotExist() {
         assertThrows(NotFoundException.class, () -> {
@@ -198,9 +188,6 @@ public class BookingServiceIntegrationTest {
         });
     }
 
-    /*
-    List<ResponseBookingDto> getUserBookings(long userId, String state);
-    */
     @Test
     void getUserBookingsShouldThrowNotFoundExceptionIfUserDoesNotExist() {
         assertThrows(NotFoundException.class, () -> {
@@ -243,9 +230,6 @@ public class BookingServiceIntegrationTest {
         assertThat(resp.getBooker().getName(), equalTo(newUser.getName()));
     }
 
-    /*
-    List<ResponseBookingDto> getUserItemsBookings(long userId, String state);
-    */
     @Test
     void getUserItemsBookingsShouldThrowNotFoundExceptionIfUserDoesNotExist() {
         assertThrows(NotFoundException.class, () -> {

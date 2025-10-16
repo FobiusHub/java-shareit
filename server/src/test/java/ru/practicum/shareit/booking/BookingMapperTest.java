@@ -14,7 +14,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
 public class BookingMapperTest {
-    //public BookingDto toBookingDto(Booking booking)
     @Test
     void toBookingDtoShouldReturnCorrectDto() {
         Item item = new Item();
