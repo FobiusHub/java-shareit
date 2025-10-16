@@ -47,12 +47,6 @@ public class UserControllerTest {
                 .build();
     }
 
-    /*
-    @PostMapping
-    public UserDto create(@Valid @RequestBody UserDto userDto) {
-        return userService.create(userDto);
-    }
-    */
     @Test
     void createTest() throws Exception {
         initialize();
@@ -88,12 +82,6 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.error").value("Некорректное тело запроса"));
     }
 
-    /*
-    @GetMapping("{id}")
-    public UserDto read(@PathVariable long id) {
-        return userService.get(id);
-    }
-    */
     @Test
     void readTest() throws Exception {
         initialize();
@@ -120,12 +108,6 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.error").value("Пользователь не найден"));
     }
 
-    /*
-    @PatchMapping("{id}")
-    public UserDto update(@Valid @RequestBody UserUpdateDto userUpdateDto, @PathVariable long id) {
-        return userService.update(userUpdateDto, id);
-    }
-    */
     @Test
     void updateTest() throws Exception {
         initialize();
@@ -151,12 +133,6 @@ public class UserControllerTest {
         verify(service).update(userUpdateDto, 1);
     }
 
-    /*
-    @DeleteMapping("{id}")
-    public void delete(@PathVariable long id) {
-        userService.delete(id);
-    }
-    */
     @Test
     void deleteTest() throws Exception {
         initialize();

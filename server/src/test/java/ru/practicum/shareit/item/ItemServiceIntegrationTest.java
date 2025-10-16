@@ -58,9 +58,6 @@ public class ItemServiceIntegrationTest {
     private Comment comment1;
     private Comment comment2;
 
-    /*
-    public ItemDto create(long userId, ItemDto itemDto);
-    */
     @Test
     void createShouldThrowNotFoundExceptionIfUserNotExist() {
         assertThatThrownBy(() -> itemService.create(-1L, itemDto))
@@ -88,10 +85,6 @@ public class ItemServiceIntegrationTest {
         assertThat(result.getOwnerId(), equalTo(user.getId()));
         assertThat(result.getRequestId(), equalTo(null));
     }
-
-    /*
-    ItemDto update(long userId, ItemUpdateDto itemUpdateDto, long itemId);
-    */
 
     @Test
     void updateShouldThrowNotFoundExceptionIfItemNotExist() {
@@ -145,9 +138,6 @@ public class ItemServiceIntegrationTest {
         assertThat(result.getRequestId(), equalTo(null));
     }
 
-    /*
-    ItemExtendedDto get(long itemId);
-    */
     @Test
     void getShouldThrowNotFoundExceptionIfItemNotExist() {
         assertThatThrownBy(() -> itemService.get(-1L))
@@ -174,9 +164,6 @@ public class ItemServiceIntegrationTest {
         assertThat(result.getComments(), hasSize(2));
     }
 
-    /*
-    List<ItemExtendedDto> findItemsByOwnerId(long userId);
-    */
     @Test
     void findItemsByOwnerIdShouldReturnItemExtendedDtoList() {
         initialize();
@@ -196,9 +183,6 @@ public class ItemServiceIntegrationTest {
         assertThat(first.getComments(), hasSize(2));
     }
 
-    /*
-    List<ItemDto> findItem(String text);
-    */
     @Test
     void findItemShouldReturnEmptyList() {
         List<ItemDto> result = itemService.findItem("");
@@ -229,9 +213,6 @@ public class ItemServiceIntegrationTest {
         assertThat(result.getLast().getId(), equalTo(item2.getId()));
     }
 
-    /*
-    CommentDto comment(long authorId, CommentDto commentDto, long itemId);
-    */
     @Test
     void commentShouldThrowInternalServerExceptionIfUserDidNotBookItem() {
         initialize();
@@ -285,18 +266,12 @@ public class ItemServiceIntegrationTest {
         assertThat(result.getAuthorName(), equalTo(booker1.getName()));
     }
 
-    /*
-    void checkItemExists(long itemId);
-    */
     @Test
     void checkItemExistsShouldThrowNotFoExceptionIfItemDoesNotExists() {
         assertThatThrownBy(() -> itemService.checkItemExists(-1L))
                 .isInstanceOf(NotFoundException.class);
     }
 
-    /*
-    void checkItemOwnership(long userId, Item item);
-    */
     @Test
     void checkItemOwnershipShouldThrowOwnershipExceptionIfUserDoesNotOwnItem() {
         initialize();

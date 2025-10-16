@@ -1,4 +1,4 @@
-package booking;
+package ru.practicum.shareit.booking;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -53,13 +53,6 @@ public class BookingControllerTest {
                 .build();
     }
 
-    /*
-    @PostMapping
-    public ResponseEntity<Object> create(@RequestHeader("X-Sharer-User-Id") long userId,
-                                         @Valid @RequestBody BookingDto bookingDto) {
-        return bookingClient.create(userId, bookingDto);
-    }
-    */
     @Test
     void createTest() throws Exception {
         initialize();
@@ -82,14 +75,6 @@ public class BookingControllerTest {
         );
     }
 
-    /*
-    @PatchMapping("{bookingId}")
-    public ResponseEntity<Object> update(@RequestHeader("X-Sharer-User-Id") long userId,
-                                         @PathVariable long bookingId,
-                                         @RequestParam boolean approved) {
-        return bookingClient.update(userId, bookingId, approved);
-    }
-    */
     @Test
     void updateTest() throws Exception {
         initialize();
@@ -108,12 +93,6 @@ public class BookingControllerTest {
         verify(client).update(eq(3L), eq(2L), eq(true));
     }
 
-    /*
-    @GetMapping("{bookingId}")
-    public ResponseEntity<Object> read(@RequestHeader("X-Sharer-User-Id") long userId, @PathVariable long bookingId) {
-        return bookingClient.get(userId, bookingId);
-    }
-    */
     @Test
     void readTest() throws Exception {
         initialize();
@@ -130,15 +109,6 @@ public class BookingControllerTest {
         verify(client).get(eq(3L), eq(2L));
     }
 
-    /*
-    @GetMapping
-    public ResponseEntity<Object> getUserBookings(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                  @RequestParam(defaultValue = "ALL") String stateParam) {
-        BookingState state = BookingState.from(stateParam)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
-        return bookingClient.getUserBookings(userId, state);
-    }
-    */
     @Test
     void getUserBookingsTest() throws Exception {
         initialize();
@@ -157,15 +127,6 @@ public class BookingControllerTest {
         verify(client).getUserBookings(eq(3L), eq(BookingState.ALL));
     }
 
-    /*
-    @GetMapping("owner")
-    public ResponseEntity<Object> getUserItemsBookings(@RequestHeader("X-Sharer-User-Id") long userId,
-                                                       @RequestParam(defaultValue = "ALL") String stateParam) {
-        BookingState state = BookingState.from(stateParam)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown state: " + stateParam));
-        return bookingClient.getUserItemsBookings(userId, state);
-    }
-    */
     @Test
     void getUserItemsBookings() throws Exception {
         initialize();

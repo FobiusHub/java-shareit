@@ -41,9 +41,6 @@ public class ItemRequestServiceIntegrationTest {
     private ItemRequestDto itemRequestDto;
     private ItemRequestDto secondItemRequestDto;
 
-    /*
-    ItemRequestDto create(long userId, ItemRequestDto itemRequestDto);
-    */
     @Test
     void createShouldThrowNotFoundExceptionIfUserIsNotExist() {
         assertThrows(NotFoundException.class, () -> {
@@ -64,9 +61,6 @@ public class ItemRequestServiceIntegrationTest {
         assertThat(itemRequestDto.getCreated(), equalTo(itemRequest.getCreated()));
     }
 
-    /*
-    List<ItemRequestExtendedDto> getOwnRequests(long userId);
-    */
     @Test
     void getOwnRequestsShouldThrowNotFoundExceptionIfUserIsNotExist() {
         assertThrows(NotFoundException.class, () -> {
@@ -102,9 +96,6 @@ public class ItemRequestServiceIntegrationTest {
         assertThat(requestItem.getOwnerId(), equalTo(itemOwner.getId()));
     }
 
-    /*
-    List<ItemRequestDto> getAllRequests(long userId);
-    */
     @Test
     void getAllRequestsShouldThrowNotFoundExceptionIfUserIsNotExist() {
         assertThrows(NotFoundException.class, () -> {
@@ -131,9 +122,6 @@ public class ItemRequestServiceIntegrationTest {
         assertThat(first.getCreated(), equalTo(secondItemRequestDto.getCreated()));
     }
 
-    /*
-    ItemRequestExtendedDto getRequest(long userId, long requestId);
-    */
     @Test
     void getRequestShouldThrowNotFoundExceptionIfUserIsNotExist() {
         assertThrows(NotFoundException.class, () -> {
