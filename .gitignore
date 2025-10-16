@@ -33,4 +33,4 @@ build/
 .vscode/
 
 /volumes/
-/shareIt-server/db/
+/server/db/
