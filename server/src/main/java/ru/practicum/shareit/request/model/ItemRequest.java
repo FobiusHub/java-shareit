@@ -7,6 +7,7 @@ import lombok.Setter;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "requests")
@@ -35,5 +36,10 @@ public class ItemRequest {
             return false;
         }
         return id == ((ItemRequest) o).getId();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, description, requester, created);
     }
 }
